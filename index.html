@@ -1,0 +1,217 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Socket.IO chat</title>
+    <style>
+     h2 { position:absolute;
+  
+   margin-left: 400px;
+   border-bottom:thick dotted black;
+    color: cyan;
+    font-family: verdana;
+    font-size: 300%;
+
+}
+
+input[type=text], select {position:absolute;
+    margin-top: 200px;
+    margin-left: 200px;
+    width: 20%;
+    padding: 12px 20px;
+  
+    display: inline-block;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+input[type=number], select {position:absolute;
+    margin-top: 210px;
+    margin-left: 200px;
+    
+    width: 20%;
+    padding: 12px 20px;
+    
+    display: inline-block;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+input[type=email], select {position:absolute;
+    margin-top: 220px;
+    margin-left: 200px;
+    
+    width: 20%;
+    padding: 12px 20px;
+    
+    display: inline-block;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+input[type=submit] {position:absolute;
+    margin-top: 400px;
+    margin-left: 33%;
+  
+    width: 20%;
+    background-color: #4CAF50;
+    color: white;
+    padding: 14px 20px;
+  
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+#dept{
+  position: absolute;
+  margin-top: 230px;
+}
+#year{
+  position: absolute;
+  margin-top: 240px;
+}
+#events{
+  position: absolute;
+  margin-top: 250px;
+}
+.res{
+    position:absolute;
+    margin-top:1%;
+    margin-left: 37%;
+    height: 300px;
+    width:400px;
+    padding: 12px 20px;
+    box-sizing: border-box;
+    border: 2px solid #ccc;
+    border-radius: 4px;
+    background-color: #f8f8f8;
+    font-size: 16px;
+    resize: none;
+    }
+    
+
+
+
+div {
+    border-radius: 5px;
+    background-color: #f2f2f2;
+    padding: 20px;
+}
+#f{
+  position: absolute;
+  margin-top: -4%;
+  margin-left: 37%;
+}
+#users{background-color: red;
+  position:absolute;
+  margin-top: 10%;
+  margin-left: 70%;
+}
+#u{
+  position: absolute;
+  margin-top: 8%;
+  margin-left: 70%;
+}
+    </style>
+  </head>
+   <body background="bgl.png">
+        <h2>Registration Page</h2>
+        <h4 id="u"> Users registered: </h4>
+        <div id="users"></div>
+    <form action="" enctype="multipart/form-data">
+      <input type="text" name="username" placeholder="username" required="required" id="username"> <br></br>
+            <input type="number" name="phoneNum" placeholder= "phone number" required="required" id="phoneNum"> <br></br>
+            <input type="email" name="email" placeholder="email" required="required" id="email"><br></br>
+            <select name="dept" placeholder="dept" id="dept">
+            <option value="CSE">CSE</option>
+            <option value="ECE">ECE</option>
+            <option value="EEE">EEE</option>
+            <option value="MECH">MECH</option>
+            <option value="ICE">ICE</option>
+            <option value="CIVIL">CIVIL</option>
+            <option value="CHEM">CHEM</option>
+            <option value="PROD">PROD</option>
+            <option value="META">META</option>
+            <option value="DOMS">DOMS</option>
+            <option value="OTHER">OTHER</option>
+            </select>
+            <br><br>
+            <select name="year" placeholder="year" id="year">
+            <option value="2nd year">2nd year</option>
+            <option value="3rd year">3rd year</option>
+            <option value="4th year">4th year</option>
+            <option value="other">other</option>
+            </select>
+            <br><br>
+            <select name="events" placeholder="event" id="events">
+            <option value="Guest Lectures">Guest Lectures</option>
+            <option value="Buzz in the Campus">Buzz in the Campus</option>
+            <option value="Pitch Fest">Pitch Fest</option>
+            <option value="Biz Quiz">Biz Quiz</option>
+            </select>
+            <br><br>
+            <div id="f">
+            <input type="file" id="files"  name="files[]" required="required" multiple />
+            </div>
+            <textarea placeholder="Resume:" name="resume" class="res" id="r"></textarea>
+
+
+
+
+           <input type="submit" value="Register" id="submit">
+      
+    </form>
+  <script src="/socket.io/socket.io.js"></script>
+<script src="https://code.jquery.com/jquery-1.11.1.js"></script>
+<script>
+  $(function () {
+    function handleFileSelect(evt) {
+    var files = evt.target.files; 
+    f=files[0];
+    var reader = new FileReader();
+    reader.onload = (function(theFile) {
+        return function(e) {
+        jQuery('#r').val(e.target.result);
+        };
+      })(f);
+
+      reader.readAsText(f);
+    
+  }
+
+document.getElementById('files').addEventListener('change', handleFileSelect, false);
+    
+    var socket = io();
+    $('form').submit(function(){
+      var name=$('#username').val();
+      var phone=$('#phoneNum').val();
+      var dept=$('#dept').val();
+      var year=$('#year').val();
+      var event=$('#events').val();
+      var res=$('#r').val();
+
+      socket.emit('details', { name: name, num: phone,dept:dept,year:year,event:event,res:res });
+      
+      //$('#m').val('');
+      return false;
+    });
+    socket.on('details', function(msg){
+      //$('#users').append($('<li>').text(msg));
+        var html='';
+        var name=msg.name;
+        var num=msg.num;
+        var dept=msg.dept;
+        var year=msg.year;
+        var event=msg.event;
+        //$('#users').html(msg);
+        html+='<li>' + name+' has registered for  '+event + '</li>';
+
+        $('#users').append(html);      
+    });
+     
+
+    
+  });
+</script>
+  </body>
+</html>
